@@ -1,7 +1,58 @@
 ---
 title: "About me"
+editor: 
+  markdown: 
+    wrap: sentence
 ---
 
-Add some text and a figure describing myself.
+## Some Questons about myself
 
-For details, see the exercise instructions. 
+**Talk a bit about yourself, your background, training, research interests. Let me/us know what kind of statistics, programming, data analysis experience you already have. I’d also be curious to know what you most hope to learn in this course. And then tell us some quirky/interesting/curious thing about you.**
+
+I am **Alex Martinez** who graduated with a *bachelor's degree in Statistics and Data Science at UTSA.* I currently work at USAA with the Deposit and Fraud Oversight team.
+I am familiar with stats since it is my undergrad but I do hope to strenghten my skills with modeling and coding in sAS/R.
+
+**Give your text a nice structure with headings, subheadings, etc.**
+
+**Include a picture of yourself. To do so, place the picture in the repository and link it from the Quarto file.**
+
+```{r}
+knitr::include_graphics("black suit.jpeg")
+```
+
+**Finally, include a link to a picture/video/website/etc. The linked material should be somehow related to data analysis. Find something that you think is really cool/interesting/weird/etc. Provide a few explanatory sentences.**
+
+Tesla [Energy Saving](https://www.tesla.com/support/energy/powerwall/mobile-app/energy-data) Data for users.
+I am a fan of tesla so I think its cool/interesting that Tesla provides quick and easy visualization that is data driven by the user.
+They are able to learn how they maximize there benefits by saving on renewable energy at there house!
+One can view there history and timescales on energy savings from there home, vehicle, powerwall, solar, grid, and much more from there telephone.
+
+**If you want, feel free to get creative and include other things. You can play with Quarto if you wish to, e.g., you can try to include a table or a video or any other elments you want to explore.**
+
+## Cool Plot using R
+
+Here's an example of a cool plot created using the `ggplot2` package in R.
+
+```{r}
+#packages
+library(ggplot2)
+
+#sample dataset
+set.seed(11)
+data <- data.frame(
+  x = rnorm(100),
+  y = rnorm(100)
+)
+
+#plot
+p <- ggplot(data, aes(x = x, y = y)) +
+  geom_point(color = 'blue') +  # Scatter plot points
+  geom_smooth(method = 'loess', color = 'red') +  # Smooth line
+  labs(title = "Cool Scatter Plot with Smooth Line",
+       x = "X Axis",
+       y = "Y Axis") +
+  theme_minimal()  # Minimal theme for a clean look
+
+# Print the plot
+print(p)
+```
