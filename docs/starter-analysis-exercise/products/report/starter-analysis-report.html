@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Alex Martinez">
-<meta name="dcterms.date" content="2024-06-12">
+<meta name="dcterms.date" content="2024-06-18">
 
 <title>Alex Martinez Data Analysis Portfolio - Manuscript/Report Template for a Data Analysis Project</title>
 <style>
@@ -204,7 +204,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 12, 2024</p>
+      <p class="date">June 18, 2024</p>
     </div>
   </div>
   
@@ -301,10 +301,10 @@ div.csl-indent {
 <span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(lmtable1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 5
-  term          estimate std.error statistic     p.value
-  &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
-1 (Intercept) 148.        12.8       11.6    0.000000169
-2 Weight       -0.000323   0.00658   -0.0491 0.962      </code></pre>
+  term        estimate std.error statistic p.value
+  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1 (Intercept)   78.6      42.6        1.85  0.0920
+2 Weight         0.992     0.592      1.68  0.122 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># save fit results table  </span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>table_file1 <span class="ot">=</span> <span class="fu">here</span>(<span class="st">"starter-analysis-exercise"</span>,<span class="st">"results"</span>, <span class="st">"tables-files"</span>, <span class="st">"resulttable1.rds"</span>)</span>
@@ -323,14 +323,14 @@ div.csl-indent {
 <span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(lmtable2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6 × 5
-  term         estimate std.error statistic  p.value
-  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-1 (Intercept) 108.       19.5         5.53  0.000878
-2 Weight       -0.00307   0.00630    -0.488 0.640   
-3 GenderM      58.8      27.6         2.13  0.0710  
-4 GenderN      47.2      43.6         1.08  0.315   
-5 GenderNA     84.3      43.6         1.93  0.0945  
-6 GenderO      57.8      33.8         1.71  0.131   </code></pre>
+  term        estimate std.error statistic p.value
+  &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;
+1 (Intercept)   83.4      46.1       1.81    0.114
+2 Weight         0.413     0.710     0.582   0.579
+3 GenderM       48.7      27.8       1.75    0.124
+4 GenderN       49.3      43.5       1.13    0.294
+5 GenderNA      71.5      48.6       1.47    0.185
+6 GenderO       49.1      36.7       1.34    0.223</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># save fit results table  </span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>table_file2 <span class="ot">=</span> <span class="fu">here</span>(<span class="st">"starter-analysis-exercise"</span>,<span class="st">"results"</span>, <span class="st">"tables-files"</span>, <span class="st">"resulttable2.rds"</span>)</span>
@@ -498,45 +498,45 @@ div.csl-indent {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">(Intercept)</td>
-<td style="text-align: right;">107.9313365</td>
-<td style="text-align: right;">19.5149683</td>
-<td style="text-align: right;">5.5306950</td>
-<td style="text-align: right;">0.0008776</td>
+<td style="text-align: right;">83.3941985</td>
+<td style="text-align: right;">46.1391000</td>
+<td style="text-align: right;">1.8074518</td>
+<td style="text-align: right;">0.1136380</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">Weight</td>
-<td style="text-align: right;">-0.0030735</td>
-<td style="text-align: right;">0.0062988</td>
-<td style="text-align: right;">-0.4879487</td>
-<td style="text-align: right;">0.6404979</td>
+<td style="text-align: right;">0.4128102</td>
+<td style="text-align: right;">0.7097063</td>
+<td style="text-align: right;">0.5816634</td>
+<td style="text-align: right;">0.5790348</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GenderM</td>
-<td style="text-align: right;">58.7529002</td>
-<td style="text-align: right;">27.6227408</td>
-<td style="text-align: right;">2.1269758</td>
-<td style="text-align: right;">0.0709865</td>
+<td style="text-align: right;">48.6706573</td>
+<td style="text-align: right;">27.8318920</td>
+<td style="text-align: right;">1.7487369</td>
+<td style="text-align: right;">0.1238210</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GenderN</td>
-<td style="text-align: right;">47.2346325</td>
-<td style="text-align: right;">43.6288938</td>
-<td style="text-align: right;">1.0826457</td>
-<td style="text-align: right;">0.3148438</td>
+<td style="text-align: right;">49.3140510</td>
+<td style="text-align: right;">43.4749441</td>
+<td style="text-align: right;">1.1343097</td>
+<td style="text-align: right;">0.2940106</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GenderNA</td>
-<td style="text-align: right;">84.3452785</td>
-<td style="text-align: right;">43.6293194</td>
-<td style="text-align: right;">1.9332247</td>
-<td style="text-align: right;">0.0944728</td>
+<td style="text-align: right;">71.4528840</td>
+<td style="text-align: right;">48.5954538</td>
+<td style="text-align: right;">1.4703615</td>
+<td style="text-align: right;">0.1849282</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GenderO</td>
-<td style="text-align: right;">57.8145435</td>
-<td style="text-align: right;">33.7950459</td>
-<td style="text-align: right;">1.7107402</td>
-<td style="text-align: right;">0.1308688</td>
+<td style="text-align: right;">49.0809859</td>
+<td style="text-align: right;">36.7234455</td>
+<td style="text-align: right;">1.3365027</td>
+<td style="text-align: right;">0.2231903</td>
 </tr>
 </tbody>
 </table>
