@@ -1,0 +1,84 @@
+---
+title: "Tidy Tuesday Exercise"
+---
+
+Write code that generates a synthetic dataset. This dataset should have multiple variables, and there should be some associations between variables.
+
+Then write code that explores the data by making plots or tables to confirm that your synthetic data is what you expect it to be.
+
+Then fit a few simple models to the data. For instance, use the lm or glm functions to fit a linear or logistic model. Make sure your model can recover the associations you built into the data. Explore if and how different models might be able to capture the patterns you see.
+
+Take some inspiration from the examples shown in the Synthetic Data module.
+
+### Generating the Sysnthetic Dataset
+
+```{r}
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+
+# Set seed for reproducibility
+set.seed(111)
+
+# Generate synthetic dataset
+n <- 1000 # number of obs the data has
+age <- rnorm(n, mean = 35, sd = 10) #creating the age variable that picks from a random sample with a mean of 35 and sd of 10
+income <- age * 1000 + rnorm(n, mean = 20000, sd = 5000) #generates income variable that is a formula of age which adds a number from a random sample with a mean of 20000 and sd of 5000
+gender <- sample(c("Male", "Female"), n, replace = TRUE) # creates gender by randomly selecting Male or Female
+spend_score <- 0.5 * income + ifelse(gender == "Male", 10000, 15000) + rnorm(n, mean = 0, sd = 3000) #creates a spending score variable that is influenced by income and gender
+buy <- ifelse(spend_score > median(spend_score), 1, 0) #binary variable based on spend score
+
+# Create the data frame
+data <- data.frame(age, income, gender, spend_score, buy)
+
+# View the first few rows of the dataset
+head(data)
+```
+
+### Exploratory Analysis
+
+```{r}
+# Summary statistics
+summary(data) # basic stats of variables
+
+# scatter plot of age and income
+ggplot(data, aes(x = age, y = income)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Age vs Income", x = "Age", y = "Income")
+
+# scatter plot of income and spend_score
+ggplot(data, aes(x = income, y = spend_score, color = gender)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Income vs Spend Score", x = "Income", y = "Spend Score")
+
+# bar plot of spend_score
+ggplot(data, aes(x = spend_score, fill = as.factor(buy))) +
+  geom_histogram(binwidth = 5000, position = "dodge") +
+  theme_minimal() +
+  labs(title = "Spend Score Distribution by Purchase Decision", x = "Spend Score", fill = "Buy")
+```
+
+### Regression models
+
+```{r}
+# Fit a linear regression model
+lm_model <- lm(spend_score ~ income + age + gender, data = data)
+summary(lm_model)
+
+
+# Fit a logistic regression model
+glm_model <- glm(buy ~ spend_score + income + age + gender, family = binomial(link = "logit"), data = data)
+summary(glm_model)
+```
+
+First is the linear regression where spend_score is the dependent variable income, age, and genderMale are the independent variables. We see that the overall model is significant with a p-value < 0.05 and that 79% of the variation in the model can be explained by the predictor variables. We see that age is not significant at predicting spend_score but income and genderMale are significant and predicting spend_score.
+
+The second model is a logistic model where we are predicting the binary buy variable with spend_score, income, age and genderMale as the independent variables. Each statistic represents the log odds of the variable so:
+
+Spend Score Coefficient: The change in the log-odds of making a purchase for each one-unit increase in spend_score, holding other variables constant.
+Income Coefficient: The change in the log-odds of making a purchase for each one-unit increase in income, holding other variables constant.
+Age Coefficient: The change in the log-odds of making a purchase for each one-year increase in age, holding other variables constant.
+Gender Coefficient: The difference in the log-odds of making a purchase between Male and the reference gender (Female in this case), holding other variables constant.
+
