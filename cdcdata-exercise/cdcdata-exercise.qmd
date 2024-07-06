@@ -101,7 +101,7 @@ print(indicator_dist)
 # Percentage of each category in LocationAbbr
 location_dist <- data %>%
   group_by(LocationAbbr) %>%
-  summarise(count = n()) %>%
+  summarise(count = n()) %>%`
   mutate(percentage = count / sum(count) * 100)
 
 print(location_dist)
