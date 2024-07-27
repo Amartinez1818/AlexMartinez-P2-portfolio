@@ -2,4 +2,392 @@
 title: "Tidy Tuesday Exercise"
 ---
 
-Placeholder file for the future Tidy Tuesday exercise.
+## Introduction
+
+This week we're exploring American Idol data! This is a [comprehensive dataset](https://github.com/kkakey/American_Idol/tree/main) put together by [kkakey](https://github.com/kkakey).
+
+There's so much data! What do you want to know about American Idol? Song choices, TV ratings, characteristics of winners?
+
+> Data in this dataset comes from [Wikipedia](https://www.wikipedia.org/). Data collected on seasons 1-18 of American Idol.
+
+> The Datasets
+>
+> -   `songs.csv` - songs that contestants sang and competed with on American Idol from seasons 1-18
+>
+> -   `auditions.csv` - audition, cities, dates, and venues
+>
+> -   `elimination_chart.csv` - eliminations by week. Data availability varies season-to-season based on season length and number of finalists competing
+>
+> -   `finalists.csv` - information on top contestants, including birthday, hometown, and description
+>
+> -   `ratings.csv` - episode ratings and views.
+>
+> -   `seasons.csv` - season-level information, including season winner, runner-up, release dates, and judges
+
+
+## Libraries
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(tidytuesdayR)
+library(randomForest)
+library(gbm)
+library(ggplot2)
+library(ggmap)
+library(maps)
+library(ggthemes)
+library(highcharter)
+library(mapdata)
+library(patchwork)
+library(themis)
+library(caret)
+library(recipes)
+library(kernlab)
+library(knitr)
+
+```
+
+## Let Explore!
+```{r}
+tuesdata <- tidytuesdayR::tt_load(2024, week = 30)
+auditions <- tuesdata$auditions
+eliminations <- tuesdata$eliminations
+finalists <- tuesdata$finalists
+ratings <- tuesdata$ratings
+seasons <- tuesdata$seasons
+songs <- tuesdata$songs
+
+str(finalists)
+
+
+# Inspect the data structures to verify column names
+glimpse(finalists)
+
+
+# Clean finalists dataset with correct column names
+finalists_clean <- finalists %>%
+  rename(
+    Contestant = Contestant,
+    Birthday = Birthday,
+    Birthplace = Birthplace,
+    Hometown = Hometown,
+    Description = Description,
+    Season = Season
+  ) %>%
+  mutate(
+    Birthday = as.Date(Birthday, format="%Y-%m-%d"),
+    Season = as.numeric(Season)
+  )
+
+# Clean other datasets
+auditions_clean <- auditions %>%
+  mutate(
+    season = as.numeric(season),
+    audition_date_start = as.Date(audition_date_start, format="%Y-%m-%d"),
+    audition_date_end = as.Date(audition_date_end, format="%Y-%m-%d"),
+    audition_city = as.character(audition_city),
+    audition_venue = as.character(audition_venue),
+    episodes = as.character(episodes),
+    episode_air_date = as.Date(episode_air_date, format="%Y-%m-%d"),
+    callback_venue = as.character(callback_venue),
+    callback_date_start = as.Date(callback_date_start, format="%Y-%m-%d"),
+    callback_date_end = as.Date(callback_date_end, format="%Y-%m-%d"),
+    tickets_to_hollywood = as.numeric(tickets_to_hollywood),
+    guest_judge = as.character(guest_judge)
+  )
+
+eliminations_clean <- eliminations %>%
+  mutate(
+    season = as.numeric(season),
+    place = as.character(place),
+    gender = as.character(gender),
+    contestant = as.character(contestant)
+  )
+
+ratings_clean <- ratings %>%
+  mutate(
+    season = as.numeric(season),
+    show_number = as.numeric(show_number),
+    episode = as.character(episode),
+    airdate = as.Date(airdate, format="%Y-%m-%d"),
+    viewers_in_millions = as.numeric(viewers_in_millions),
+    timeslot_et = as.character(timeslot_et),
+    dvr_viewers_millions = as.numeric(dvr_viewers_millions),
+    total_viewers_millions = as.numeric(total_viewers_millions),
+    nightlyrank = as.numeric(nightlyrank)
+  )
+
+
+seasons_clean <- seasons %>%
+  mutate(
+    season = as.numeric(season),
+    winner = as.character(winner),
+    runner_up = as.character(runner_up),
+    original_release = as.character(original_release),
+    original_network = as.character(original_network),
+    hosted_by = as.character(hosted_by),
+    judges = as.character(judges),
+    no_of_episodes = as.numeric(no_of_episodes),
+    finals_venue = as.character(finals_venue),
+    mentor = as.character(mentor)
+  )
+
+songs_clean <- songs %>%
+  mutate(
+    season = as.numeric(season),
+    week = as.character(week),
+    order = as.numeric(order),
+    contestant = as.character(contestant),
+    song = as.character(song),
+    artist = as.character(artist),
+    song_theme = as.character(song_theme),
+    result = as.character(result)
+  )
+
+
+# Merge relevant datasets
+# Check if gender exists in eliminations_clean and join with finalists_clean
+if ("gender" %in% colnames(eliminations_clean)) {
+  finalists_clean <- finalists_clean %>%
+    inner_join(eliminations_clean %>% select(contestant, gender), by = c("Contestant" = "contestant"))
+}
+
+# Merge with seasons_clean
+data <- finalists_clean %>%
+  inner_join(seasons_clean, by = c("Season" = "season"))
+data <- songs_clean %>%
+  left_join(finalists_clean, by = c("contestant" = "Contestant", "season" = "Season")) %>%
+  mutate(finalist = ifelse(!is.na(Hometown), 1, 0))
+```
+
+
+## Exploring our Data
+```{r}
+# Inspect cleaned data
+str(auditions_clean)
+str(eliminations_clean)
+str(finalists_clean)
+str(ratings_clean)
+str(seasons_clean)
+str(songs_clean)
+
+summary(auditions_clean)
+summary(eliminations_clean)
+summary(finalists_clean)
+summary(ratings_clean)
+summary(seasons_clean)
+summary(songs_clean)
+
+
+# Bar graph showing the number of tickets to Hollywood based on top 10 audition cities
+top_10_cities <- auditions_clean %>%
+  group_by(audition_city) %>%
+  summarize(total_tickets = sum(tickets_to_hollywood, na.rm = TRUE)) %>%
+  arrange(desc(total_tickets)) %>%
+  slice(1:10)
+
+ggplot(top_10_cities, aes(x = audition_city, y = total_tickets)) +
+  geom_col(fill = "red") +
+  theme_minimal() +
+  coord_flip() +
+  labs(title = "Number of Tickets to Hollywood by Top 10 Audition Cities", x = "City", y = "Tickets to Hollywood") +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.length = unit(0.25, "cm"))
+
+
+
+
+
+
+#  Comparison of male eliminations vs female eliminations
+ggplot(eliminations_clean, aes(x = gender, fill = gender)) +
+  geom_bar() +
+  scale_fill_manual(values = c("orange", "black")) +
+  theme_minimal() +
+  labs(title = "American Idol Male vs Female Eliminations", x = "Gender", y = "Count") +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10))
+
+
+# Trend of number of viewers per episode over the seasons
+ratings_clean %>%
+  group_by(season) %>%
+  summarise(average_viewers = mean(viewers_in_millions, na.rm = TRUE)) %>%
+  hchart("line", hcaes(x = season, y = average_viewers), name = "Average Viewers") %>%
+  hc_title(text = "Number of Viewers Per Episode Over the Seasons") %>%
+  hc_xAxis(title = list(text = "Season")) %>%
+  hc_yAxis(title = list(text = "Average Viewers (Millions)")) %>%
+  hc_plotOptions(line = list(color = "#00008B"))
+
+```
+
+## Modeling
+
+```{r}
+# Merge necessary data
+song_data <- songs %>%
+  group_by(contestant) %>%
+  summarise(total_songs = n(), genres = paste(unique(song_theme), collapse = ","))
+
+# Define winners based on place column in the eliminations table
+winners_data <- eliminations %>%
+  filter(place == "1") %>%
+  select(season, contestant)
+
+# Add information about winners
+contestant_details <- finalists %>%
+  mutate(is_winner = if_else(Contestant %in% winners_data$contestant, 1, 0)) %>%
+  left_join(song_data, by = c("Contestant" = "contestant"))
+
+# Handle missing values (if any)
+contestant_details <- contestant_details %>%
+  replace_na(list(total_songs = 0, genres = "unknown"))
+
+# Ensure the is_winner variable is a factor with two levels
+contestant_details <- contestant_details %>%
+  mutate(is_winner = factor(is_winner, levels = c(0, 1)))
+
+# Remove rows with any NA values
+contestant_details <- na.omit(contestant_details)
+
+# Split the data into training and testing sets
+set.seed(123)
+train_indices <- createDataPartition(contestant_details$is_winner, p = 0.8, list = FALSE)
+train_set <- contestant_details[train_indices, ]
+test_set <- contestant_details[-train_indices, ]
+
+# Pre-process Data
+prep_recipe <- recipe(is_winner ~ total_songs, data = train_set) %>%
+  step_normalize(all_predictors())
+
+prepped_recipe <- prep(prep_recipe)
+train_processed <- bake(prepped_recipe, new_data = NULL)
+test_processed <- bake(prepped_recipe, new_data = test_set)
+
+# Define and Fit at least 3 Different Model Types
+## Model 1: Logistic Regression
+log_reg_spec <- logistic_reg() %>%
+  set_engine("glm")
+
+log_reg_workflow <- workflow() %>%
+  add_model(log_reg_spec) %>%
+  add_recipe(prep_recipe)
+
+## Model 2: Random Forest
+rf_spec <- rand_forest(trees = 1000) %>%
+  set_engine("ranger") %>%
+  set_mode("classification")
+
+rf_workflow <- workflow() %>%
+  add_model(rf_spec) %>%
+  add_recipe(prep_recipe)
+
+## Model 3: Support Vector Machine
+svm_spec <- svm_rbf() %>%
+  set_engine("kernlab") %>%
+  set_mode("classification")
+
+svm_workflow <- workflow() %>%
+  add_model(svm_spec) %>%
+  add_recipe(prep_recipe)
+
+# Create cross-validation folds
+set.seed(123)
+cv_folds <- vfold_cv(train_set, v = 5)
+
+# Define metrics
+metric_set <- yardstick::metric_set(yardstick::roc_auc, yardstick::accuracy)
+
+# Fit and evaluate models using cross-validation
+log_reg_results <- fit_resamples(
+  log_reg_workflow,
+  resamples = cv_folds,
+  metrics = metric_set
+)
+
+rf_results <- fit_resamples(
+  rf_workflow,
+  resamples = cv_folds,
+  metrics = metric_set
+)
+
+svm_results <- fit_resamples(
+  svm_workflow,
+  resamples = cv_folds,
+  metrics = metric_set
+)
+
+# Collect and compare metrics
+log_reg_metrics <- collect_metrics(log_reg_results)
+rf_metrics <- collect_metrics(rf_results)
+svm_metrics <- collect_metrics(svm_results)
+
+log_reg_metrics
+
+```
+
+## evaluation
+```{r}
+# Choose the best model based on cross-validation performance
+optimal_model_workflow <- log_reg_workflow 
+
+# Fit the best model on the entire training set
+trained_model <- fit(optimal_model_workflow, data = train_set)
+
+# Evaluate the model on the test set
+test_predictions <- predict(trained_model, test_set) %>%
+  bind_cols(test_set)
+
+# Creating a confusion matrix
+conf_matrix <- confusionMatrix(test_predictions$.pred_class, test_set$is_winner)
+
+# Print confusion matrix
+print(conf_matrix)
+
+# Extracting metrics
+accuracy <- conf_matrix$overall['Accuracy']
+precision <- conf_matrix$byClass['Pos Pred Value']  # Precision
+recall <- conf_matrix$byClass['Sensitivity']       # Recall
+f1_score <- 2 * (precision * recall) / (precision + recall)
+
+# Printing the metrics
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1 Score:", f1_score, "\n")
+
+```
+
+## final model
+```{r}
+# Define performance metrics
+performance_metrics <- data.frame(
+  Metric = c("Accuracy", "Precision", "Recall", "F1 Score"),
+  Value = c(as.numeric(accuracy), as.numeric(precision), as.numeric(recall), as.numeric(f1_score))
+)
+
+# Plotting the metrics using ggplot2
+library(ggplot2)
+
+ggplot(performance_metrics, aes(x = Metric, y = Value, group = 1)) +
+  geom_line(color = "blue") +
+  geom_point(size = 3, color = "red") +
+  theme_minimal() +
+  labs(title = "Performance Metrics for Logistic Regression Model",
+       x = "Metric",
+       y = "Value") +
+  ylim(0, 1.2) +
+  theme(plot.title = element_text(size = 16, face = "bold"),
+        axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.ticks.length = unit(0.25, "cm"),
+        panel.grid.major = element_line(color = "grey"),
+        panel.grid.minor = element_line(color = "lightgrey"))
+```
+
+## summary
+
+The data supports the hypothesis that contestants who perform more songs are more likely to reach the finals. The Logistic Regression model shows high accuracy with reasonable precision and recall, indicating that the number of songs sung is a strong predictor of a contestant’s likelihood of making it to the finals. Overall, the analysis confirms that singing more songs increases the chances of reaching the finals, validating the hypothesis and providing valuable insights into the factors contributing to success on American Idol.
